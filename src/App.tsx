@@ -86,7 +86,7 @@ function nowTimeStr() {
   const d = new Date();
   return d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
 }
-function getColor(id) {
+function getColor(id: string) {
   return PLAYER_COLORS.find((c) => c.id === id) || PLAYER_COLORS[0];
 }
 
@@ -166,22 +166,22 @@ export default function App() {
   const [scores, setScores] = useState({});
   const [field, setField] = useState("A");
   const [hole, setHole] = useState(1);
-  const [startTime, setStartTime] = useState(null);
+  const [startTime, setStartTime] = useState<number | null>(null);
   const [startTimeStr, setStartTimeStr] = useState("");
   const [elapsed, setElapsed] = useState(0);
   const [paused, setPaused] = useState(false);
-  const [pausedAt, setPausedAt] = useState(null);
-  const [editingId, setEditingId] = useState(null);
+  const [pausedAt, setPausedAt] = useState<number | null>(null);
+  const [editingId, setEditingId] = useState<number | null>(null);
   const [confirmFinish, setConfirmFinish] = useState(false);
   const [showSaveModal, setShowSaveModal] = useState(false);
-  const timerRef = useRef(null);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const [newName, setNewName] = useState("");
   const [editRowId, setEditRowId] = useState(null);
   const [editRowName, setEditRowName] = useState("");
 
   const [statPlayer, setStatPlayer] = useState("all");
-  const [histLimit, setHistLimit] = useState(5);
+  const [histLimit, setHistLimit] = useState<number | "todas">(5);
   const [histShowAll, setHistShowAll] = useState(false);
   const [confirmDeleteId, setConfirmDeleteId] = useState(null);
   const [sessionMatch, setSessionMatch] = useState(null);
@@ -219,7 +219,7 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    function handleBefore(e) {
+    function handleBefore(e: BeforeUnloadEvent) {
       if (started) {
         sd(SESSION_KEY, {
           selPids,
@@ -257,8 +257,8 @@ export default function App() {
         () => setElapsed(Date.now() - startTime),
         1000,
       );
-    } else clearInterval(timerRef.current);
-    return () => clearInterval(timerRef.current);
+    } else clearInterval(timerRef.current ?? undefined);
+    return () => clearInterval(timerRef.current ?? undefined);
   }, [started, paused, startTime]);
 
   function resumeSession() {
