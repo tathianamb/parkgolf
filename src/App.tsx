@@ -175,7 +175,6 @@ export default function App() {
   const [confirmFinish, setConfirmFinish] = useState(false);
   const [showSaveModal, setShowSaveModal] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const importRef = useRef<HTMLInputElement>(null);
 
   const [newName, setNewName] = useState("");
   const [editRowId, setEditRowId] = useState(null);
@@ -383,63 +382,13 @@ export default function App() {
   function handleContinue() {
     setShowSaveModal(false);
   }
-  function downloadBackup(updatedMatches) {
-    const data = {
-      version: 1,
-      exportedAt: new Date().toISOString(),
-      players,
-      matches: updatedMatches,
-    };
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `parkgolf-${new Date().toLocaleDateString("pt-BR").replace(/\//g, "-")}.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  }
   function handleSaveForLater() {
-    const rec = persistMatch("saved");
-    const updated = editingId
-      ? matches.map((x) => (x.id === editingId ? rec : x))
-      : [...matches, rec];
-    downloadBackup(updated);
+    persistMatch("saved");
     exitMatch();
   }
   function handleFinish() {
-    const rec = persistMatch("finished");
-    const updated = editingId
-      ? matches.map((x) => (x.id === editingId ? rec : x))
-      : [...matches, rec];
-    downloadBackup(updated);
+    persistMatch("finished");
     exitMatch();
-  }
-  function exportAll() {
-    downloadBackup(matches);
-  }
-  function handleImportFile(e) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      try {
-        const data = JSON.parse(ev.target?.result as string);
-        if (!Array.isArray(data.players) || !Array.isArray(data.matches)) {
-          alert("Arquivo inválido.");
-          return;
-        }
-        const hasData = players.length > 0 || matches.length > 0;
-        if (hasData && !confirm("Importar substituirá todos os dados atuais. Continuar?")) return;
-        setPlayers(data.players);
-        setMatches(data.matches);
-      } catch {
-        alert("Arquivo inválido.");
-      }
-      if (importRef.current) importRef.current.value = "";
-    };
-    reader.readAsText(file);
   }
 
   function reopenMatch(m) {
@@ -1404,21 +1353,6 @@ export default function App() {
       {/* ── HISTÓRICO ── */}
       {tab === "hist" && (
         <div className="pg-section">
-          <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
-            <button className="pg-btn" onClick={exportAll} style={{ flex: 1, fontSize: 12 }}>
-              ↓ Exportar dados
-            </button>
-            <label className="pg-btn" style={{ flex: 1, fontSize: 12, textAlign: "center", cursor: "pointer" }}>
-              ↑ Importar dados
-              <input
-                ref={importRef}
-                type="file"
-                accept=".json"
-                style={{ display: "none" }}
-                onChange={handleImportFile}
-              />
-            </label>
-          </div>
           {matches.length === 0 ? (
             <p style={{ color: "#888", fontSize: 13 }}>
               Nenhuma partida registrada ainda.
